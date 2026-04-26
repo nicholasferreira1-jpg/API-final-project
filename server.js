@@ -2,8 +2,11 @@ const express = require('express');
 const {setupDatabase} = require('./database/setup')
 const logger = require('./middleware/logger');
 const idValidation = require('./middleware/idValidation');
+const requireAuth = require('./middleware/requiredAuth');
+
 
 const indexRoutes = require('./routes/index');
+const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const goalRoutes = require('./routes/goals');
 const progressRoutes = require('./routes/progress');
@@ -20,10 +23,11 @@ app.use(logger);
 
 // Validate ID middleware
 
-app.use('/api/:resource/:id', validateId);
+app.use('/api/:resource/:id', idValidation);
 
 //Routes
 app.use('/', indexRoutes);
+app.use('/api', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/progress', progressRoutes);
