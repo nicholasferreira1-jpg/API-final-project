@@ -27,6 +27,41 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/goals/category/:category - Get goals by category
+router.get('/category/:category', async (req, res) => {
+    try {
+        const validCategories = ['fitness', 'education', 'personal', 'career', 'finance', 'other'];
+        if (!validCategories.includes(req.params.category)) {
+            return res.status(400).json({ 
+                error: `Invalid category. Must be one of: ${validCategories.join(', ')}` 
+            });
+        }
+
+        const where = req.user.role === 'admin' 
+            ? { category: req.params.category }
+            : { category: req.params.category, userId: req.user.id };
+
+        const goals = await Goal.findAll({
+            where,
+            include: [
+                { model: User, attributes: ['id', 'name', 'email'] },
+                { model: Progress }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        res.json({
+            message: `Goals in category "${req.params.category}" retrieved successfully`,
+            goals: goals,
+            total: goals.length
+        });
+    } catch (error) {
+        console.error('Error fetching goals by category:', error);
+        res.status(500).json({ error: 'Failed to fetch goals by category' });
+    }
+});
+
+
 // GET /api/goals/:id - Get single goal (admin or owner)
 router.get('/:id', requireOwnership(Goal), async (req, res) => {
     try {
@@ -43,6 +78,40 @@ router.get('/:id', requireOwnership(Goal), async (req, res) => {
     } catch (error) {
         console.error('Error fetching goal:', error);
         res.status(500).json({ error: 'Failed to fetch goal' });
+    }
+});
+
+// GET /api/goals/status/:status - Get goals by status
+router.get('/status/:status', async (req, res) => {
+    try {
+        const validStatuses = ['active', 'completed', 'abandoned'];
+        if (!validStatuses.includes(req.params.status)) {
+            return res.status(400).json({ 
+                error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` 
+            });
+        }
+
+        const where = req.user.role === 'admin'
+            ? { status: req.params.status }
+            : { status: req.params.status, userId: req.user.id };
+
+        const goals = await Goal.findAll({
+            where,
+            include: [
+                { model: User, attributes: ['id', 'name', 'email'] },
+                { model: Progress }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        res.json({
+            message: `Goals with status "${req.params.status}" retrieved successfully`,
+            goals: goals,
+            total: goals.length
+        });
+    } catch (error) {
+        console.error('Error fetching goals by status:', error);
+        res.status(500).json({ error: 'Failed to fetch goals by status' });
     }
 });
 
