@@ -131,7 +131,6 @@ async function setupDatabase() {
         await db.sync({ force: true });
         console.log('Database and tables created successfully.');
         
-        await db.close();
     } catch (error) {
         console.error('Unable to connect to the database:', error);
     }

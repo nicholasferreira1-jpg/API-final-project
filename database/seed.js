@@ -197,7 +197,6 @@ async function seedDatabase() {
         await Progress.bulkCreate(sampleProgress);
         console.log('Sample progress inserted successfully.');
 
-        await db.close();
         console.log('Database seeding completed.');
 
     } catch (error) {
