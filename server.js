@@ -14,6 +14,17 @@ app.use((req, res, next) => {
     next();
 });
 
+// Validate ID middleware
+app.use('/api/:resource/:id', (req, res, next) => {
+    const id = req.params.id;
+    if (isNaN(id)) {
+        return res.status(400).json({ 
+            error: 'Invalid ID format. ID must be a number.' 
+        });
+    }
+    next();
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({
@@ -397,6 +408,8 @@ app.use((err, req, res, next) => {
         message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
     });
 });
+
+module.exports = app;
 
 // Start server
 setupDatabase().then(() => {
