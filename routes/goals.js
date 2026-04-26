@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { Goal, User, Progress } = require('../database/setup');
+const { requireOwnership } = require('../middleware/role');
 
-// GET /api/goals - Get all goals
+// GET /api/goals - Get all goals (admin sees all, user sees own)
 router.get('/', async (req, res) => {
     try {
+        const where = req.user.role === 'admin' ? {} : { userId: req.user.id };
+
         const goals = await Goal.findAll({
+            where,
             include: [
                 { model: User, attributes: ['id', 'name', 'email'] },
                 { model: Progress }
@@ -23,8 +27,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET /api/goals/:id - Get single goal
-router.get('/:id', async (req, res) => {
+// GET /api/goals/:id - Get single goal (admin or owner)
+router.get('/:id', requireOwnership(Goal), async (req, res) => {
     try {
         const goal = await Goal.findByPk(req.params.id, {
             include: [
@@ -45,15 +49,10 @@ router.get('/:id', async (req, res) => {
 // POST /api/goals - Create new goal
 router.post('/', async (req, res) => {
     try {
-        const { title, description, category, targetDate, status, userId } = req.body;
+        const { title, description, category, targetDate, status } = req.body;
 
-        if (!title || !category || !userId) {
-            return res.status(400).json({ error: 'Title, category, and userId are required' });
-        }
-
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+        if (!title || !category) {
+            return res.status(400).json({ error: 'Title and category are required' });
         }
 
         const newGoal = await Goal.create({
@@ -62,7 +61,7 @@ router.post('/', async (req, res) => {
             category,
             targetDate,
             status: status || 'active',
-            userId
+            userId: req.user.id
         });
 
         res.status(201).json({
@@ -75,8 +74,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// PUT /api/goals/:id - Update goal
-router.put('/:id', async (req, res) => {
+// PUT /api/goals/:id - Update goal (admin or owner)
+router.put('/:id', requireOwnership(Goal), async (req, res) => {
     try {
         const { title, description, category, targetDate, status } = req.body;
 
@@ -103,8 +102,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// DELETE /api/goals/:id - Delete goal
-router.delete('/:id', async (req, res) => {
+// DELETE /api/goals/:id - Delete goal (admin or owner)
+router.delete('/:id', requireOwnership(Goal), async (req, res) => {
     try {
         const goal = await Goal.findByPk(req.params.id);
         if (!goal) {
