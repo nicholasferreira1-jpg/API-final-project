@@ -2,11 +2,22 @@ const {Sequelize, DataTypes } = require('sequelize');
 const apth = require('path');
 
 // Initialize database connection
-const db = new Sequelize({
-    dialect: 'sqlite',
-    storage: './database/goaltracker.db',
-    logging: false
-});
+const db = process.env.DATABASE_URL
+    ? new Sequelize(process.env.DATABASE_URL, {
+        dialect: 'postgres',
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false
+            }
+        },
+        logging: false
+    })
+    : new Sequelize({
+        dialect: 'sqlite',
+        storage: './database/goaltracker.db',
+        logging: false
+    });
 
 // User Model
 const User = db.define('User', {
