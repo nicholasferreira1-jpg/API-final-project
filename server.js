@@ -1,8 +1,10 @@
 const express = require('express');
+const cors = require('cors');
 const {setupDatabase} = require('./database/setup')
 const logger = require('./middleware/logger');
 const idValidation = require('./middleware/idValidation');
 const requireAuth = require('./middleware/requiredAuth');
+
 
 
 const indexRoutes = require('./routes/index');
@@ -20,6 +22,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(logger);
+
+
+app.use(cors());
 
 // Validate ID middleware
 
