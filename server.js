@@ -28,9 +28,9 @@ app.use('/api/:resource/:id', idValidation);
 //Routes
 app.use('/', indexRoutes);
 app.use('/api', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/goals', goalRoutes);
-app.use('/api/progress', progressRoutes);
+app.use('/api/users', requireAuth, userRoutes);
+app.use('/api/goals', requireAuth, goalRoutes);
+app.use('/api/progress', requireAuth, progressRoutes);
 
 module.exports = app;
 

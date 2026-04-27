@@ -3,29 +3,6 @@ const router = express.Router();
 const { Goal, User, Progress } = require('../database/setup');
 const { requireOwnership } = require('../middleware/role');
 
-// GET /api/goals - Get all goals (admin sees all, user sees own)
-router.get('/', async (req, res) => {
-    try {
-        const where = req.user.role === 'admin' ? {} : { userId: req.user.id };
-
-        const goals = await Goal.findAll({
-            where,
-            include: [
-                { model: User, attributes: ['id', 'name', 'email'] },
-                { model: Progress }
-            ],
-            order: [['createdAt', 'DESC']]
-        });
-        res.json({
-            message: 'Goals retrieved successfully',
-            goals: goals,
-            total: goals.length
-        });
-    } catch (error) {
-        console.error('Error fetching goals:', error);
-        res.status(500).json({ error: 'Failed to fetch goals' });
-    }
-});
 
 // GET /api/goals/category/:category - Get goals by category
 router.get('/category/:category', async (req, res) => {
@@ -61,26 +38,6 @@ router.get('/category/:category', async (req, res) => {
     }
 });
 
-
-// GET /api/goals/:id - Get single goal (admin or owner)
-router.get('/:id', requireOwnership(Goal), async (req, res) => {
-    try {
-        const goal = await Goal.findByPk(req.params.id, {
-            include: [
-                { model: User, attributes: ['id', 'name', 'email'] },
-                { model: Progress }
-            ]
-        });
-        if (!goal) {
-            return res.status(404).json({ error: 'Goal not found' });
-        }
-        res.json(goal);
-    } catch (error) {
-        console.error('Error fetching goal:', error);
-        res.status(500).json({ error: 'Failed to fetch goal' });
-    }
-});
-
 // GET /api/goals/status/:status - Get goals by status
 router.get('/status/:status', async (req, res) => {
     try {
@@ -112,6 +69,49 @@ router.get('/status/:status', async (req, res) => {
     } catch (error) {
         console.error('Error fetching goals by status:', error);
         res.status(500).json({ error: 'Failed to fetch goals by status' });
+    }
+});
+
+// GET /api/goals - Get all goals (admin sees all, user sees own)
+router.get('/', async (req, res) => {
+    try {
+        const where = req.user.role === 'admin' ? {} : { userId: req.user.id };
+
+        const goals = await Goal.findAll({
+            where,
+            include: [
+                { model: User, attributes: ['id', 'name', 'email'] },
+                { model: Progress }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+        res.json({
+            message: 'Goals retrieved successfully',
+            goals: goals,
+            total: goals.length
+        });
+    } catch (error) {
+        console.error('Error fetching goals:', error);
+        res.status(500).json({ error: 'Failed to fetch goals' });
+    }
+});
+
+// GET /api/goals/:id - Get single goal (admin or owner)
+router.get('/:id', requireOwnership(Goal), async (req, res) => {
+    try {
+        const goal = await Goal.findByPk(req.params.id, {
+            include: [
+                { model: User, attributes: ['id', 'name', 'email'] },
+                { model: Progress }
+            ]
+        });
+        if (!goal) {
+            return res.status(404).json({ error: 'Goal not found' });
+        }
+        res.json(goal);
+    } catch (error) {
+        console.error('Error fetching goal:', error);
+        res.status(500).json({ error: 'Failed to fetch goal' });
     }
 });
 
